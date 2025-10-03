@@ -1,0 +1,37 @@
+[project]
+name = "h2cli"
+version = "0.1.0"
+description = "A project to learn the HTTP2 protocol."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.406",
+    "ruff>=0.13.3",
+]
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"  # or "basic" / "standard"
+reportMissingTypeStubs = true
+reportUnknownMemberType = true
+reportUnknownVariableType = true
+reportUnknownArgumentType = true
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "ANN", "B", "C4", "ARG"]
+ignore = []
+
+[project.scripts]
+h2cli = "h2cli.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
