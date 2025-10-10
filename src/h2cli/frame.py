@@ -23,6 +23,12 @@ class FrameType(Enum):
     stream in the "idle", "reserved (local)", "open", or "half-closed (remote)" state.
     """
 
+    PRIORITY = 0x2
+    """The PRIORITY frame (type=0x2) specifies the sender-advised priority of a
+    stream (Section 5.3). It can be sent in any stream state, including idle or
+    closed streams.
+    """
+
     RST_STREAM = 0x3
     """The RST_STREAM frame (type=0x3) allows for immediate termination of a stream.
     RST_STREAM is sent to request cancellation of a stream or to indicate that an
@@ -37,6 +43,38 @@ class FrameType(Enum):
     endpoints communicate, such as preferences and constraints on peer behavior. The
     SETTINGS frame is also used to acknowledge the receipt of those parameters.
     Individually, a SETTINGS parameter can also be referred to as a "setting".
+    """
+
+    PUSH_PROMISE = 0x5
+    """The PUSH_PROMISE frame (type=0x5) is used to notify the peer endpoint in
+    advance of streams the sender intends to initiate. The PUSH_PROMISE frame
+    includes the unsigned 31-bit identifier of the stream the endpoint plans to
+    create along with a set of headers that provide additional context for the stream.
+    """
+
+    PING = 0x6
+    """The PING frame (type=0x6) is a mechanism for measuring a minimal round-trip
+    time from the sender, as well as determining whether an idle connection is
+    still functional. PING frames can be sent from any endpoint.
+    """
+
+    GOAWAY = 0x7
+    """The GOAWAY frame (type=0x7) is used to initiate shutdown of a connection
+    or to signal serious error conditions. GOAWAY allows an endpoint to gracefully
+    stop accepting new streams while still finishing processing of previously
+    established streams. This enables administrative actions, like server maintenance.
+    """
+
+    WINDOW_UPDATE = 0x8
+    """The WINDOW_UPDATE frame (type=0x8) is used to implement flow control;
+    see Section 5.2 for an overview.
+    """
+
+    CONTINUATION = 0x9
+    """The CONTINUATION frame (type=0x9) is used to continue a sequence of header
+    block fragments (Section 4.3). Any number of CONTINUATION frames can be sent,
+    as long as the preceding frame is on the same stream and is a HEADERS,
+    PUSH_PROMISE, or CONTINUATION frame without the END_HEADERS flag set.
     """
 
 
