@@ -22,3 +22,52 @@ def test_serialize() -> None:
     assert got[4] == FrameFlag.PADDED.value | FrameFlag.PRIORITY.value  # ORed flags
     assert got[5:9] == b"\x00\x00\x00\x7b"  # Stream ID = 123
     assert got[9:] == b"ABC"  # Payload
+
+
+def test_deserialize_settings_frame() -> None:
+    wire = (
+        b"\x00\x00\x06"  # length=6
+        b"\x04"  # type=SETTINGS (4)
+        b"\x00"  # flags=0
+        b"\x00\x00\x00\x00"  # stream_id=0
+        b"\x00\x03\x00\x00\x00\x64"  # payload
+    )
+
+    frame, remaining = Frame.deserialize(wire)
+
+    assert frame.length == 6
+    assert frame.type == FrameType.SETTINGS
+    assert frame.flags == set()
+    assert frame.stream_id == 0
+    assert frame.payload == b"\x00\x03\x00\x00\x00\x64"
+    assert remaining == b""
+
+
+def test_deserialize_with_remaining_bytes() -> None:
+    wire = (
+        b"\x00\x00\x04"  # length=4
+        b"\x00"  # type=DATA (0)
+        b"\x01"  # flags=END_STREAM
+        b"\x00\x00\x00\x01"  # stream_id=1
+        b"test"  # payload
+        b"extra data"  # remaining
+    )
+
+    frame, remaining = Frame.deserialize(wire)
+
+    assert frame.payload == b"test"
+    assert remaining == b"extra data"
+
+
+def test_round_trip_serialization() -> None:
+    original = Frame.make(
+        type=FrameType.HEADERS,
+        flags={FrameFlag.END_STREAM, FrameFlag.END_HEADERS},
+        stream_id=123,
+        payload=b"header block",
+    )
+
+    wire = original.serialize()
+    deserialized, _ = Frame.deserialize(wire)
+
+    assert deserialized == original

@@ -155,6 +155,30 @@ class Frame:
 
         return cls(len(payload), type, flags, stream_id, payload)
 
+    @classmethod
+    def deserialize(cls, data: bytes) -> tuple[Self, bytes]:
+        """Deserializes the next frame in the data byte stream. It then returns the
+        frame and the remaining bytes.
+        """
+        if len(data) < 9:
+            raise ValueError(f"Frame header requires 9 bytes, got {len(data)}")
+
+        header = data[:9]
+        length = struct.unpack("!I", b"\x00" + header[0:3])[0]
+        frame_type = FrameType(header[3])
+        flags = _parse_flags(header[4], frame_type)
+        stream_id = struct.unpack("!I", header[5:9])[0] & 0x7FFFFFFF
+
+        if len(data) < 9 + length:
+            raise ValueError(
+                f"Frame payload requires {length} bytes, but only {len(data) - 9} available"
+            )
+
+        payload = data[9 : 9 + length]
+        remaining = data[9 + length :]
+
+        return cls(length, frame_type, flags, stream_id, payload), remaining
+
     def serialize(self) -> bytes:
         """Serialize frame to wire format (RFC 7540, Section 4.1).
 
@@ -199,3 +223,10 @@ class Frame:
             result |= flag.value
 
         return result
+
+
+def _parse_flags(flags_byte: int, frame_type: FrameType) -> set[FrameFlag]:
+    """Parses the flags for a given frame type."""
+    return {
+        flag for flag in FrameFlag if flag.can_be_used_for(frame_type) and (flag.value & flags_byte)
+    }
