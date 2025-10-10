@@ -1,7 +1,10 @@
-.PHONY: run lint format typecheck check fix
+.PHONY: run test lint format typecheck check fix
 
 run:
 	uv run h2cli
+
+test:
+	uv run pytest tests/
 
 # Run all checks (no modifications)
 check:

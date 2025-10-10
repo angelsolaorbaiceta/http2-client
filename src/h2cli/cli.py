@@ -5,7 +5,7 @@ Implemented following RFC 7540: https://httpwg.org/specs/rfc7540.html
 
 NOTES:
 
-    - The upgrade mechanism (https://httpwg.org/specs/rfc7540.html#discover-http) 
+    - The upgrade mechanism (https://httpwg.org/specs/rfc7540.html#discover-http)
     isn't implemented.
 """
 
