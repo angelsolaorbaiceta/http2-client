@@ -8,3 +8,9 @@ Other than the RFC, I'm using these open source implementations of the protocol:
 - [hyper h2](https://github.com/python-hyper/h2/tree/master)
 - [Go net http2](https://github.com/golang/net/tree/master/http2)
 - [fasthttp http2](https://github.com/fasthttp/http2)
+
+Commonly read documentation pages:
+
+- [Python struct](https://docs.python.org/3/library/struct.html)
+- [Python sockets](https://docs.python.org/3/library/socket.html)
+- [Python SSL](https://docs.python.org/3/library/ssl.html)
