@@ -85,7 +85,7 @@ class HTTP2Connection:
         if self._parsed_url.hostname is None:
             raise ValueError("Please use the 'https://' schema in the URL.")
 
-        self._sock: socket.socket | ssl.SSLSocket | None = None
+        self._sock: ssl.SSLSocket | None = None
         self._recv_buffer = b""
 
     @cached_property
@@ -97,6 +97,11 @@ class HTTP2Connection:
     def port(self) -> int:
         return self._parsed_url.port or 443
 
+    @property
+    def _connected_sock(self) -> ssl.SSLSocket:
+        assert self._sock is not None, "Please call connect() before attempting to use the socket"
+        return self._sock
+
     def connect(self) -> None:
         """Opening an HTTP2 connection with the host involves the following steps:
 
@@ -105,8 +110,19 @@ class HTTP2Connection:
         3. Send the HTTP2 preface
         4. Exchange the settings of the connection
         """
-        self._establish_tcp()
-        self._establish_tls()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.hostname, self.port))
+        _log.info(f"TCP connection established to {self.hostname}:{self.port}")
+
+        context = ssl.create_default_context()
+        context.set_alpn_protocols(["h2"])
+        self._sock = context.wrap_socket(sock, server_hostname=self.hostname)
+        cipher = self._sock.cipher()
+        assert cipher is not None
+        _log.info(
+            f"{cipher[1]} handshake complete. Using {cipher[0]} with {cipher[2]} bits of randomness."
+        )
+
         self._send_preface()
         self._exchange_settings()
 
@@ -151,17 +167,6 @@ class HTTP2Connection:
             self._sock.close()
             self._sock = None
             _log.info("TCP connection closed")
-
-    def _establish_tcp(self) -> None:
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._sock.connect((self.hostname, self.port))
-        _log.info(f"TCP connection established to {self.hostname}:{self.port}")
-
-    def _establish_tls(self) -> None:
-        assert self._sock
-        context = ssl.create_default_context()
-        self._sock = context.wrap_socket(self._sock, server_hostname=self.hostname)
-        _log.info("TLS handshake complete")
 
     def _send_preface(self) -> None:
         assert self._sock
