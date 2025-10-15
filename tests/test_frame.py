@@ -82,9 +82,9 @@ def test_settings_from_frame() -> None:
         SettingIdentifier.MAX_FRAME_SIZE: 16384,
     }
     payload = build_settings_payload(settings)
-    frame = Frame.make(type=FrameType.SETTINGS, flags={FrameFlag.ACK}, stream_id=0, payload=payload)
+    frame = Frame.make(type=FrameType.SETTINGS, stream_id=0, payload=payload)
     got = SettingsFrame.from_frame(frame)
-    want = SettingsFrame(flags={FrameFlag.ACK}, settings=settings)
+    want = SettingsFrame(settings=settings)
 
     assert got == want
 
@@ -103,4 +103,5 @@ def test_cant_build_settings_from_non_0_stream_id() -> None:
 
 def test_cant_build_non_empty_ack_settings_frame() -> None:
     with pytest.raises(ValueError):
+        SettingsFrame(flags={FrameFlag.ACK}, settings={SettingIdentifier.HEADER_TABLE_SIZE: 4096})
         SettingsFrame(flags={FrameFlag.ACK}, settings={SettingIdentifier.HEADER_TABLE_SIZE: 4096})
