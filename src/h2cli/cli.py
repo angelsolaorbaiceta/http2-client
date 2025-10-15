@@ -28,8 +28,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-_log = logging.getLogger(__name__)
-
 
 def main() -> None:
     print(_logo)

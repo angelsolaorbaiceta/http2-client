@@ -1,7 +1,7 @@
+import logging
 import socket
 import ssl
 from functools import cached_property
-from logging import getLogger
 from urllib.parse import urlparse
 
 from h2cli.frame import Frame, FrameType
@@ -9,8 +9,6 @@ from h2cli.frame_settings import SettingsFrame
 
 _CONNECTION_PREFACE = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 """HTTP/2 connection preface (RFC 7540, Section 3.5)"""
-
-_log = getLogger(__name__)
 
 
 class HTTP2Connection:
@@ -54,19 +52,19 @@ class HTTP2Connection:
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.hostname, self.port))
-        _log.info(f"TCP connection established to {self.hostname}:{self.port}")
+        logging.info(f"TCP connection established to {self.hostname}:{self.port}")
 
         context = ssl.create_default_context()
         context.set_alpn_protocols(["h2"])
         self._sock = context.wrap_socket(sock, server_hostname=self.hostname)
         cipher = self._sock.cipher()
         assert cipher is not None
-        _log.info(
+        logging.info(
             f"{cipher[1]} handshake complete. Using {cipher[0]} with {cipher[2]} bits of randomness"
         )
 
         self._sock.sendall(_CONNECTION_PREFACE)
-        _log.info(">>> HTTP/2 preface (RFC 7540 -- Section 3.5)")
+        logging.info(">>> HTTP/2 preface (RFC 7540 -- Section 3.5)")
 
         self._exchange_settings()
 
@@ -110,14 +108,14 @@ class HTTP2Connection:
         if self._sock is not None:
             self._sock.close()
             self._sock = None
-            _log.info("TCP connection closed")
+            logging.info("TCP connection closed")
 
     def _exchange_settings(self) -> None:
         settings_frame = SettingsFrame()
         self.send_frame(settings_frame)
-        _log.info(f">>> SETTINGS frame: {settings_frame}")
+        logging.info(f">>> SETTINGS frame: {settings_frame}")
 
         server_settings = SettingsFrame.from_frame(self.recv_frame())
         if server_settings.type != FrameType.SETTINGS:
             raise ValueError(f"Expected SETTINGS, got {server_settings.type}")
-        _log.info(f"<<< SETTINGS frame: {server_settings}")
+        logging.info(f"<<< SETTINGS frame: {server_settings}")
