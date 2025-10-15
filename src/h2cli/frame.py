@@ -123,7 +123,7 @@ class FrameFlag(Enum):
     """
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Frame:
     """An HTTP frame as defined by RFC 7540, section 4.1:
 
@@ -175,10 +175,12 @@ class Frame:
     def make(
         cls,
         type: FrameType,
-        flags: set[FrameFlag],
         stream_id: int,
         payload: bytes,
+        flags: set[FrameFlag] | None = None,
     ) -> Self:
+        flags = flags or set()
+
         if (payload_length := len(payload)) > _FRAME_PAYLOAD_MAX_LENGTH:
             raise ValueError(
                 f"Frame length {payload_length} exceeds 2^14 maximum ({_FRAME_PAYLOAD_MAX_LENGTH})"
