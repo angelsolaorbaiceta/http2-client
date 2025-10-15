@@ -23,14 +23,26 @@ _logo = """
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%H:%M:%S",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
+
+_log = logging.getLogger(__name__)
 
 
 def main() -> None:
     print(_logo)
     url = input("URL > ")
+
+    if url.startswith("http://"):
+        print("The HTTP protocol (h2c) isn't supported. Use 'https://' instead.")
+        sys.exit(1)
+
+    if not url.startswith("https://"):
+        url = "https://" + url
+        logging.info(f"Using {url}")
+
     connection = HTTP2Connection(url)
     connection.connect()
 

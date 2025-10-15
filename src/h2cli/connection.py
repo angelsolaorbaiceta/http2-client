@@ -66,7 +66,7 @@ class HTTP2Connection:
         )
 
         self._sock.sendall(_CONNECTION_PREFACE)
-        _log.info("Sent HTTP/2 preface (RFC 7540 -- Section 3.5)")
+        _log.info(">>> HTTP/2 preface (RFC 7540 -- Section 3.5)")
 
         self._exchange_settings()
 
@@ -115,9 +115,9 @@ class HTTP2Connection:
     def _exchange_settings(self) -> None:
         settings_frame = SettingsFrame()
         self.send_frame(settings_frame)
-        _log.info(f"Sent SETTINGS frame: {settings_frame}")
+        _log.info(f">>> SETTINGS frame: {settings_frame}")
 
-        server_settings = self.recv_frame()
+        server_settings = SettingsFrame.from_frame(self.recv_frame())
         if server_settings.type != FrameType.SETTINGS:
             raise ValueError(f"Expected SETTINGS, got {server_settings.type}")
-        _log.info(f"Received server SETTINGS frame: {server_settings}")
+        _log.info(f"<<< SETTINGS frame: {server_settings}")
